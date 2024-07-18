@@ -2,7 +2,7 @@ export interface Player {
   id: string;
   ready: boolean;
   score: number;
-  sprite: string;
+  spirit: string;
 }
 
 export interface Game {

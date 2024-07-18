@@ -3,7 +3,7 @@ import { nanoid } from 'nanoid';
 import { Game, Player } from './interfaces';
 import { BehaviorSubject } from 'rxjs';
 
-const sprites = ['🦀', '🐙', '🦑', '🦐'];
+export const spirits = ['🦀', '🐙', '🦑', '🦐'];
 
 const baseGame: Game = {
   sessionId: '',
@@ -17,7 +17,7 @@ const baseGame: Game = {
 @Injectable()
 export class AppService {
   private game: Game = baseGame;
-  public availableSprites$: BehaviorSubject<string[]> = new BehaviorSubject([]);
+  public availableSpirits$: BehaviorSubject<string[]> = new BehaviorSubject([]);
   public gameStarted$: BehaviorSubject<boolean> = new BehaviorSubject(false);
   public gameFinished$: BehaviorSubject<boolean> = new BehaviorSubject(false);
 
@@ -35,16 +35,22 @@ export class AppService {
       maxScore,
     };
 
-    this.availableSprites$.next(sprites);
+    this.availableSpirits$.next(spirits);
 
     return this.game.sessionId;
   }
 
   private checkSession(sessionId: string): void {
+    if (this.game.sessionId !== sessionId) {
+      throw new Error('Session not found.');
+    }
+  }
+  public joinSession(sessionId: string): Game {
     this.checkSession(sessionId);
+    return this.game;
   }
 
-  public join(sessionId: string, sprite: string): void {
+  public selectSpirit(sessionId: string, spirit: string): void {
     this.checkSession(sessionId);
 
     if (this.game.started) {
@@ -55,7 +61,7 @@ export class AppService {
       throw new Error('Game session is full.');
     }
 
-    if (!sprites.includes(sprite)) {
+    if (!spirits.includes(spirit)) {
       throw new Error('Sprite not available.');
     }
 
@@ -63,11 +69,11 @@ export class AppService {
       id: nanoid(),
       ready: false,
       score: 0,
-      sprite,
+      spirit: spirit,
     });
 
-    this.availableSprites$.next(
-      this.availableSprites$.value.filter((s) => s !== sprite),
+    this.availableSpirits$.next(
+      this.availableSpirits$.value.filter((s) => s !== spirit),
     );
   }
 
@@ -108,7 +114,7 @@ export class AppService {
     this.game = {
       ...baseGame,
     };
-    this.availableSprites$.complete();
-    this.availableSprites$ = new BehaviorSubject([]);
+    this.availableSpirits$.complete();
+    this.availableSpirits$ = new BehaviorSubject([]);
   }
 }
