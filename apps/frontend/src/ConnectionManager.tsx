@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { socket } from "./socket";
 
 export function ConnectionManager() {
   const [sessionId, setSessionId] = useState("");
