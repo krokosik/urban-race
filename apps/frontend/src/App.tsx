@@ -37,6 +37,9 @@ export default function App() {
     socket.on("start", () => {
       navigate(`/game?${searchParams.toString()}`);
     });
+    socket.on("finish", () => {
+      navigate(`/finish?${searchParams.toString()}`);
+    });
 
     socket.emit("join", { sessionId });
 

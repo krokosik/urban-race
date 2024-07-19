@@ -1,13 +1,13 @@
 import {
-  MessageBody,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
   WsResponse,
 } from '@nestjs/websockets';
+import QRCode from 'qrcode';
 import { Server, Socket } from 'socket.io';
 import { AppService } from './app.service';
-import QRCode from 'qrcode';
+import { interval, Subscription } from 'rxjs';
 
 @WebSocketGateway({
   cors: {
@@ -19,6 +19,7 @@ export class AppGateway {
   server: Server;
 
   private readonly gameRoom = 'game';
+  private playersSubscription: Subscription;
 
   constructor(private readonly appService: AppService) {}
 
@@ -70,13 +71,32 @@ export class AppGateway {
 
     if (this.appService.game.started) {
       this.server.to(data.sessionId).to(this.gameRoom).emit('start');
+      this.playersSubscription?.unsubscribe();
+      this.playersSubscription = interval(300).subscribe(() => {
+        this.server
+          .to(data.sessionId)
+          .to(this.gameRoom)
+          .emit('players', this.appService.game.players);
+      });
     }
 
     return { event: 'selectSpirit', data: 'OK' };
   }
 
+  @SubscribeMessage('addScore')
+  addScore(client: Socket, data: { sessionId: string; score: number }) {
+    this.appService.addScore(data.sessionId, client.id, data.score);
+    if (this.appService.game.finished) {
+      this.server.to(data.sessionId).to(this.gameRoom).emit('finish');
+      this.playersSubscription?.unsubscribe();
+      this.playersSubscription = null;
+    }
+  }
+
   @SubscribeMessage('reset')
   reset(client: Socket) {
+    this.playersSubscription?.unsubscribe();
+    this.playersSubscription = null;
     this.appService.reset();
     client.leave(this.gameRoom);
     console.log('reset');

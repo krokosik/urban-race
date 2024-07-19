@@ -5,6 +5,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./globals.css";
 import { IoProvider } from "socket.io-react-hook";
 import { SpiritSelect } from "./SpiritSelect.tsx";
+import { Game } from "./Game.tsx";
 
 const router = createBrowserRouter([
   {
@@ -17,8 +18,17 @@ const router = createBrowserRouter([
       },
       {
         path: "game",
-        element: <div>Contact</div>,
+        element: <Game />,
       },
+      {
+        path: "finish",
+        element: <div>Finish</div>,
+      },
+      {
+        path: "*",
+        element: <div>Not found</div>,
+      },
+      }
     ],
   },
 ]);
