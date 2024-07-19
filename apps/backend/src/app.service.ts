@@ -80,7 +80,6 @@ export class AppService {
     } else {
       this.game.players.push({
         id: playerId,
-        ready: false,
         score: 0,
         spirit: spirit,
       });
@@ -101,18 +100,6 @@ export class AppService {
 
     return player;
   }
-
-  // public markReady(sessionId: string, playerId: string): void {
-  //   this.checkSession(sessionId);
-
-  //   const player = this.findPlayer(playerId);
-
-  //   player.ready = true;
-
-  //   if (this.game.players.every((p) => p.ready)) {
-  //     this.game.started = true;
-  //   }
-  // }
 
   public addScore(sessionId: string, playerId: string, score: number): void {
     this.checkSession(sessionId);

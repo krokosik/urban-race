@@ -71,20 +71,34 @@ export class AppGateway {
 
     if (this.appService.game.started) {
       this.server.to(data.sessionId).to(this.gameRoom).emit('start');
-      this.playersSubscription?.unsubscribe();
-      this.playersSubscription = interval(300).subscribe(() => {
-        this.server
-          .to(data.sessionId)
-          .to(this.gameRoom)
-          .emit('players', this.appService.game.players);
-      });
+      this.startPlayerNotification(data.sessionId);
     }
 
     return { event: 'selectSpirit', data: 'OK' };
   }
 
+  @SubscribeMessage('start')
+  start(data: { sessionId: string }) {
+    this.appService.game.started = true;
+    this.server.to(data.sessionId).to(this.gameRoom).emit('start');
+    this.startPlayerNotification(data.sessionId);
+  }
+
+  private startPlayerNotification(sessionId: string) {
+    this.playersSubscription?.unsubscribe();
+    this.playersSubscription = interval(300).subscribe(() => {
+      this.server
+        .to(sessionId)
+        .to(this.gameRoom)
+        .emit('players', this.appService.game.players);
+    });
+  }
+
   @SubscribeMessage('addScore')
   addScore(client: Socket, data: { sessionId: string; score: number }) {
+    if (this.appService.game.finished) {
+      return;
+    }
     this.appService.addScore(data.sessionId, client.id, data.score);
     if (this.appService.game.finished) {
       this.server.to(data.sessionId).to(this.gameRoom).emit('finish');
