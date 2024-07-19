@@ -1,47 +1,47 @@
 import {
   MessageBody,
-  OnGatewayConnection,
   SubscribeMessage,
   WebSocketGateway,
+  WebSocketServer,
   WsResponse,
 } from '@nestjs/websockets';
-import { Socket } from 'socket.io';
-import { AppService, spirits } from './app.service';
+import { Server, Socket } from 'socket.io';
+import { AppService } from './app.service';
 
 @WebSocketGateway({
   cors: {
     origin: '*',
   },
 })
-export class AppGateway implements OnGatewayConnection {
-  constructor(private readonly appService: AppService) {}
+export class AppGateway {
+  @WebSocketServer()
+  server: Server;
 
-  handleConnection(client: Socket, ...args: any[]): void {
-    this.appService.availableSpirits$.subscribe((sprites) => {
-      client.emit('availableSpirits', sprites);
-    });
-  }
+  private readonly gameRoom = 'game';
+
+  constructor(private readonly appService: AppService) {}
 
   @SubscribeMessage('init')
   init(
-    @MessageBody() data: { slots: number; maxScore: number },
+    socket: Socket,
+    data: { slots: number; maxScore: number },
   ): WsResponse<string> {
     const sessionId = this.appService.init(data?.slots, data?.maxScore);
-    console.log('init', sessionId);
+    this.appService.availableSpirits$.subscribe((spirits) => {
+      this.server.to(sessionId).emit('availableSpirits', spirits);
+    });
+    socket.join(this.gameRoom);
+
     return { event: 'init', data: sessionId };
   }
 
   @SubscribeMessage('join')
-  join(@MessageBody() data: { sessionId: string }): WsResponse<{}> {
+  join(socket: Socket, data: { sessionId: string }): WsResponse<{}> {
     const game = this.appService.joinSession(data.sessionId);
+    socket.join(game.sessionId);
     return {
       event: 'join',
-      data: {
-        sessionId: game.sessionId,
-        slots: game.slots,
-        maxScore: game.maxScore,
-        allSpirits: spirits,
-      },
+      data: game,
     };
   }
 
