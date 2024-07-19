@@ -4,6 +4,7 @@ import { ConnectionManager } from "./ConnectionManager";
 import { Events } from "./Events";
 import { socket } from "./socket";
 import { MyForm } from "./MyForm";
+import { Outlet } from "react-router";
 
 export default function App() {
   const [isConnected, setIsConnected] = useState(socket.connected);
@@ -36,11 +37,12 @@ export default function App() {
   }, []);
 
   return (
-    <div className="App">
+    <div className="max-w-4xl mx-auto min-h-dvh">
       <ConnectionState isConnected={isConnected} />
       <Events events={fooEvents} />
       <ConnectionManager />
       <MyForm />
+      <Outlet />
     </div>
   );
 }

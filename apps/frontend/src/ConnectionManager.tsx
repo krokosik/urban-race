@@ -42,7 +42,9 @@ export function ConnectionManager() {
 
   return (
     <>
-      <button onClick={connect}>Connect</button>
+      <button className="btn" onClick={connect}>
+        Connect
+      </button>
       <button onClick={disconnect}>Disconnect</button>
       <button
         onClick={() => {
