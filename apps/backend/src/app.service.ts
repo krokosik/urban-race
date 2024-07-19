@@ -16,10 +16,8 @@ const baseGame: Game = {
 
 @Injectable()
 export class AppService {
-  private game: Game = baseGame;
+  public game: Game = baseGame;
   public availableSpirits$: BehaviorSubject<string[]> = new BehaviorSubject([]);
-  public gameStarted$: BehaviorSubject<boolean> = new BehaviorSubject(false);
-  public gameFinished$: BehaviorSubject<boolean> = new BehaviorSubject(false);
 
   get spirits(): string[] {
     return fs.readdirSync(
@@ -88,6 +86,10 @@ export class AppService {
         score: 0,
         spirit: spirit,
       });
+    }
+
+    if (this.game.players.length === this.game.slots) {
+      this.game.started = true;
     }
 
     this.availableSpirits$.next(availableSpirits.filter((s) => s !== spirit));

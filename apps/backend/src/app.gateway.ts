@@ -32,6 +32,7 @@ export class AppGateway {
       this.server.to(sessionId).emit('availableSpirits', spirits);
     });
 
+    console.log('init', { sessionId });
     socket.join(this.gameRoom);
 
     const qrCodeBase64 = await QRCode.toDataURL(
@@ -61,12 +62,23 @@ export class AppGateway {
     data: { sessionId: string; spirit: string },
   ): WsResponse<string> {
     this.appService.selectSpirit(data.sessionId, client.id, data.spirit);
+
+    this.server
+      .to(data.sessionId)
+      .to(this.gameRoom)
+      .emit('players', this.appService.game.players);
+
+    if (this.appService.game.started) {
+      this.server.to(data.sessionId).to(this.gameRoom).emit('start');
+    }
+
     return { event: 'selectSpirit', data: 'OK' };
   }
 
   @SubscribeMessage('reset')
-  reset() {
+  reset(client: Socket) {
     this.appService.reset();
+    client.leave(this.gameRoom);
     console.log('reset');
   }
 }

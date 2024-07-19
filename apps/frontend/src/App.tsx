@@ -34,6 +34,9 @@ export default function App() {
     socket.on("allSpirits", (spirits) => {
       state.setSpirits(spirits);
     });
+    socket.on("start", () => {
+      navigate(`/game?${searchParams.toString()}`);
+    });
 
     socket.emit("join", { sessionId });
 
