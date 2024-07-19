@@ -26,4 +26,6 @@ WORKDIR /usr/src/app
 
 COPY --from=builder /usr/src/app .
 
+ENV NODE_ENV=production
+
 CMD ["npm", "run", "start"]

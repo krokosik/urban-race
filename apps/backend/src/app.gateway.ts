@@ -4,7 +4,7 @@ import {
   WebSocketServer,
   WsResponse,
 } from '@nestjs/websockets';
-import QRCode from 'qrcode';
+import { toDataURL } from 'qrcode';
 import { Server, Socket } from 'socket.io';
 import { AppService } from './app.service';
 import { interval, Subscription } from 'rxjs';
@@ -36,7 +36,7 @@ export class AppGateway {
     console.log('init', { sessionId });
     socket.join(this.gameRoom);
 
-    const qrCodeBase64 = await QRCode.toDataURL(
+    const qrCodeBase64 = await toDataURL(
       `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173' : 'https://urban-race.nvlv-studio.com'}/?sessionId=${sessionId}`,
     );
 

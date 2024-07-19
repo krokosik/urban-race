@@ -7,7 +7,9 @@ export const Game = () => {
   const [searchParams] = useSearchParams();
   const [acceleration, setAcceleration] = useState({ x: 0, y: 0, z: 0 });
   const sessionId = searchParams.get("sessionId");
-  const [permission, setPermission] = useState(false);
+  const [permission, setPermission] = useState<boolean>(
+    !(DeviceMotionEvent as any)?.requestPermission
+  );
 
   const motionDetection = useCallback(
     (event: DeviceMotionEvent) => {
@@ -15,14 +17,13 @@ export const Game = () => {
       setAcceleration({ x: x ?? 0, y: y ?? 0, z: z ?? 0 });
       socket.emit("addScore", {
         sessionId,
-        score: Math.sqrt((x ?? 0) ** 2 + (y ?? 0) ** 2 + (z ?? 0) ** 2),
+        score: Math.sqrt((x ?? 0) ** 2 + (y ?? 0) ** 2 + (z ?? 0) ** 2) / 1000,
       });
     },
     [sessionId, socket]
   );
 
   useEffect(() => {
-    if (!permission) return;
     window.addEventListener("devicemotion", motionDetection, true);
     return () => {
       window.removeEventListener("devicemotion", motionDetection);
@@ -46,23 +47,15 @@ export const Game = () => {
         <button
           className="btn"
           onClick={() => {
-            if (
-              typeof DeviceMotionEvent !== "undefined" &&
-              // @ts-ignore
-              typeof DeviceMotionEvent.requestPermission === "function"
-            ) {
-              // @ts-ignore
-              DeviceMotionEvent.requestPermission()
-                .then((response: any) => {
-                  // (optional) Do something after API prompt dismissed.
-                  if (response == "granted") {
-                    setPermission(true);
-                  }
-                })
-                .catch(console.error);
-            } else {
-              alert("DeviceMotionEvent is not defined");
-            }
+            // @ts-ignore
+            DeviceMotionEvent.requestPermission()
+              .then((response: any) => {
+                // (optional) Do something after API prompt dismissed.
+                if (response == "granted") {
+                  setPermission(true);
+                }
+              })
+              .catch(console.error);
           }}
         >
           Request motion permission

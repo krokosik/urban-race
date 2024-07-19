@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { nanoid } from 'nanoid';
 import { Game, Player } from './interfaces';
 import { BehaviorSubject } from 'rxjs';
-import fs from 'fs';
-import path from 'path';
+import { readdirSync } from 'node:fs';
+import { join } from 'node:path';
 
 const baseGame: Game = {
   sessionId: '',
@@ -20,9 +20,7 @@ export class AppService {
   public availableSpirits$: BehaviorSubject<string[]> = new BehaviorSubject([]);
 
   get spirits(): string[] {
-    return fs.readdirSync(
-      path.join(__dirname, '../..', 'frontend', 'dist', 'spirits'),
-    );
+    return readdirSync(join(__dirname, '../..', 'frontend', 'dist', 'spirits'));
   }
 
   public init(slots: number, maxScore: number): string {
