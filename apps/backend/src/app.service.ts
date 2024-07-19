@@ -75,7 +75,7 @@ export class AppService {
       throw new Error('Sprite not available.');
     }
 
-    const player = this.game.players.find((p) => p.id === playerId);
+    const player = this.findPlayer(playerId);
     const availableSpirits = this.availableSpirits$.value;
 
     if (player) {
@@ -93,31 +93,34 @@ export class AppService {
     this.availableSpirits$.next(availableSpirits.filter((s) => s !== spirit));
   }
 
-  private findPlayer(playerId: string): Player {
+  private findPlayer(playerId: string): Player | null {
     const player = this.game.players.find((p) => p.id === playerId);
     if (!player) {
-      throw new Error('Player not found.');
+      return null;
     }
 
     return player;
   }
 
-  public markReady(sessionId: string, playerId: string): void {
-    this.checkSession(sessionId);
+  // public markReady(sessionId: string, playerId: string): void {
+  //   this.checkSession(sessionId);
 
-    const player = this.findPlayer(playerId);
+  //   const player = this.findPlayer(playerId);
 
-    player.ready = true;
+  //   player.ready = true;
 
-    if (this.game.players.every((p) => p.ready)) {
-      this.game.started = true;
-    }
-  }
+  //   if (this.game.players.every((p) => p.ready)) {
+  //     this.game.started = true;
+  //   }
+  // }
 
   public addScore(sessionId: string, playerId: string, score: number): void {
     this.checkSession(sessionId);
 
     const player = this.findPlayer(playerId);
+    if (!player) {
+      throw new Error('Player not found.');
+    }
 
     player.score += score;
 

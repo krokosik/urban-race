@@ -51,7 +51,7 @@ export default function App() {
   }, [!!state.game, sessionId]);
 
   return (
-    <div className="max-w-3xl mx-auto min-h-dvh m-8">
+    <div className="max-w-3xl mx-auto min-h-dvh">
       <button
         className="btn"
         onClick={() => {
