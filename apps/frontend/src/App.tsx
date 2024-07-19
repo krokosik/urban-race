@@ -72,6 +72,7 @@ export default function App() {
         onClick={() => {
           socket.emit("reset");
           setSearchParams({});
+          navigate("/");
         }}
       >
         Reset
@@ -84,7 +85,7 @@ export default function App() {
       {/* <ConnectionManager /> */}
       {/* <MyForm /> */}
       <Outlet />
-      <ToastContainer />
+      <ToastContainer position="bottom-center" theme="dark" />
     </div>
   );
 }
