@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { nanoid } from 'nanoid';
 import { Game, Player } from './interfaces';
 import { BehaviorSubject } from 'rxjs';
-
-export const spirits = ['🦀', '🐙', '🦑', '🦐'];
+import fs from 'fs';
+import path from 'path';
 
 const baseGame: Game = {
   sessionId: '',
@@ -21,6 +21,12 @@ export class AppService {
   public gameStarted$: BehaviorSubject<boolean> = new BehaviorSubject(false);
   public gameFinished$: BehaviorSubject<boolean> = new BehaviorSubject(false);
 
+  get spirits(): string[] {
+    return fs.readdirSync(
+      path.join(__dirname, '../..', 'frontend', 'dist', 'spirits'),
+    );
+  }
+
   public init(slots: number, maxScore: number): string {
     if (this.game.sessionId) {
       throw new Error(
@@ -35,7 +41,7 @@ export class AppService {
       maxScore,
     };
 
-    this.availableSpirits$.next(spirits);
+    this.availableSpirits$.next(this.spirits);
 
     return this.game.sessionId;
   }
@@ -50,7 +56,11 @@ export class AppService {
     return this.game;
   }
 
-  public selectSpirit(sessionId: string, spirit: string): void {
+  public selectSpirit(
+    sessionId: string,
+    playerId: string,
+    spirit: string,
+  ): void {
     this.checkSession(sessionId);
 
     if (this.game.started) {
@@ -61,20 +71,26 @@ export class AppService {
       throw new Error('Game session is full.');
     }
 
-    if (!spirits.includes(spirit)) {
+    if (!this.spirits.includes(spirit)) {
       throw new Error('Sprite not available.');
     }
 
-    this.game.players.push({
-      id: nanoid(),
-      ready: false,
-      score: 0,
-      spirit: spirit,
-    });
+    const player = this.game.players.find((p) => p.id === playerId);
+    const availableSpirits = this.availableSpirits$.value;
 
-    this.availableSpirits$.next(
-      this.availableSpirits$.value.filter((s) => s !== spirit),
-    );
+    if (player) {
+      availableSpirits.push(player.spirit);
+      player.spirit = spirit;
+    } else {
+      this.game.players.push({
+        id: playerId,
+        ready: false,
+        score: 0,
+        spirit: spirit,
+      });
+    }
+
+    this.availableSpirits$.next(availableSpirits.filter((s) => s !== spirit));
   }
 
   private findPlayer(playerId: string): Player {

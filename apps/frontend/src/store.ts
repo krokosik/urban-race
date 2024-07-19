@@ -4,7 +4,11 @@ import { devtools } from "zustand/middleware";
 
 interface State {
   game?: Game;
+  spirits: string[];
+  availableSpirits: string[];
   setGame: (game: Game) => void;
+  setSpirits: (spirits: string[]) => void;
+  setAvailableSpirits: (spirits: string[]) => void;
 }
 
 export interface Player {
@@ -26,6 +30,10 @@ export interface Game {
 export const useStore = create<State>()(
   devtools((set) => ({
     game: undefined,
+    spirits: [],
+    availableSpirits: [],
     setGame: (game) => set({ game }),
+    setSpirits: (spirits) => set({ spirits }),
+    setAvailableSpirits: (availableSpirits) => set({ availableSpirits }),
   }))
 );

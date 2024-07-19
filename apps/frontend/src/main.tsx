@@ -4,6 +4,7 @@ import App from "./App.tsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./globals.css";
 import { IoProvider } from "socket.io-react-hook";
+import { SpiritSelect } from "./SpiritSelect.tsx";
 
 const router = createBrowserRouter([
   {
@@ -12,7 +13,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: "select",
-        element: <div>About</div>,
+        element: <SpiritSelect />,
       },
       {
         path: "game",

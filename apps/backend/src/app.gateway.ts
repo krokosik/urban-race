@@ -45,6 +45,10 @@ export class AppGateway {
   join(socket: Socket, data: { sessionId: string }): WsResponse<{}> {
     const game = this.appService.joinSession(data.sessionId);
     socket.join(game.sessionId);
+
+    socket.emit('allSpirits', this.appService.spirits);
+    socket.emit('availableSpirits', this.appService.availableSpirits$.value);
+
     return {
       event: 'join',
       data: game,
@@ -53,9 +57,10 @@ export class AppGateway {
 
   @SubscribeMessage('selectSpirit')
   selectSpirit(
-    @MessageBody() data: { sessionId: string; spirit: string },
+    client: Socket,
+    data: { sessionId: string; spirit: string },
   ): WsResponse<string> {
-    this.appService.selectSpirit(data.sessionId, data.spirit);
+    this.appService.selectSpirit(data.sessionId, client.id, data.spirit);
     return { event: 'selectSpirit', data: 'OK' };
   }
 
