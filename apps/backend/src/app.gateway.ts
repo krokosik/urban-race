@@ -7,6 +7,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { AppService } from './app.service';
+import QRCode from 'qrcode';
 
 @WebSocketGateway({
   cors: {
@@ -22,17 +23,22 @@ export class AppGateway {
   constructor(private readonly appService: AppService) {}
 
   @SubscribeMessage('init')
-  init(
+  async init(
     socket: Socket,
     data: { slots: number; maxScore: number },
-  ): WsResponse<string> {
+  ): Promise<WsResponse<{ sessionId: string; qrCodeBase64: string }>> {
     const sessionId = this.appService.init(data?.slots, data?.maxScore);
     this.appService.availableSpirits$.subscribe((spirits) => {
       this.server.to(sessionId).emit('availableSpirits', spirits);
     });
+
     socket.join(this.gameRoom);
 
-    return { event: 'init', data: sessionId };
+    const qrCodeBase64 = await QRCode.toDataURL(
+      `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173' : 'https://urban-race.nvlv-studio.com'}/?sessionId=${sessionId}`,
+    );
+
+    return { event: 'init', data: { sessionId, qrCodeBase64 } };
   }
 
   @SubscribeMessage('join')
@@ -56,5 +62,6 @@ export class AppGateway {
   @SubscribeMessage('reset')
   reset() {
     this.appService.reset();
+    console.log('reset');
   }
 }

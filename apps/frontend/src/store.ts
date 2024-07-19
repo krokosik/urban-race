@@ -4,7 +4,6 @@ import { devtools } from "zustand/middleware";
 
 interface State {
   game?: Game;
-  setSessionId: (sessionId: string) => void;
   setGame: (game: Game) => void;
 }
 
@@ -27,7 +26,6 @@ export interface Game {
 export const useStore = create<State>()(
   devtools((set) => ({
     game: undefined,
-    setSessionId: (sessionId) => set({ sessionId }),
     setGame: (game) => set({ game }),
   }))
 );

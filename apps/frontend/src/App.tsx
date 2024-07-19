@@ -59,7 +59,7 @@ export default function App() {
       <button
         className="btn"
         onClick={() => {
-          socket.once("init", (sessionId) => {
+          socket.once("init", ({ sessionId }) => {
             setSearchParams({ sessionId });
           });
           socket.emit("init", { slots: 4, maxScore: 10 });
