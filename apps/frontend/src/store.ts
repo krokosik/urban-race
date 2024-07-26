@@ -13,7 +13,6 @@ interface State {
 
 export interface Player {
   id: string;
-  ready: boolean;
   score: number;
   spirit: string;
 }

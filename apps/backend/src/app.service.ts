@@ -5,19 +5,21 @@ import { BehaviorSubject } from 'rxjs';
 import { readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
-const baseGame: Game = {
-  sessionId: '',
-  players: [],
-  slots: 0,
-  started: false,
-  finished: false,
-  maxScore: 0,
-};
-
 @Injectable()
 export class AppService {
-  public game: Game = baseGame;
+  public game: Game = this.baseGame;
   public availableSpirits$: BehaviorSubject<string[]> = new BehaviorSubject([]);
+
+  get baseGame(): Game {
+    return {
+      sessionId: '',
+      players: [],
+      slots: 0,
+      started: false,
+      finished: false,
+      maxScore: 0,
+    };
+  }
 
   get spirits(): string[] {
     return readdirSync(join(__dirname, '../..', 'frontend', 'dist', 'spirits'));
@@ -31,7 +33,7 @@ export class AppService {
     }
 
     this.game = {
-      ...baseGame,
+      ...this.baseGame,
       sessionId: nanoid(),
       slots,
       maxScore,
@@ -118,7 +120,7 @@ export class AppService {
 
   public reset(): void {
     this.game = {
-      ...baseGame,
+      ...this.baseGame,
     };
     this.availableSpirits$.complete();
     this.availableSpirits$ = new BehaviorSubject([]);
