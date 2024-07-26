@@ -10,7 +10,7 @@ export default function App() {
   const { socket, connected } = useProperSocket();
   const navigate = useNavigate();
 
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const sessionId = searchParams.get("sessionId");
   const state = useStore();
 
@@ -57,30 +57,12 @@ export default function App() {
   }, [!!state.game, sessionId]);
 
   return (
-    <div className="max-w-3xl mx-auto min-h-dvh">
-      <button
-        className="btn"
-        onClick={() => {
-          socket.once("init", ({ sessionId }) => {
-            setSearchParams({ sessionId });
-          });
-          socket.emit("init", { slots: 4, maxScore: 10 });
-        }}
-      >
-        Init
-      </button>
-      <button
-        className="btn"
-        onClick={() => {
-          socket.emit("reset");
-          setSearchParams({});
-          navigate("/");
-        }}
-      >
-        Reset
-      </button>
+    <div className="max-w-3xl mx-auto h-dvh">
       {!state.game && (
-        <span className="loading loading-spinner loading-lg"></span>
+        <div className="size-full flex flex-col gap-8 justify-center items-center">
+          <span className="loading loading-spinner size-20"></span>
+          <span className="text-white text-lg">Connecting to server...</span>
+        </div>
       )}
       <Outlet />
       <ToastContainer position="bottom-center" theme="dark" />
