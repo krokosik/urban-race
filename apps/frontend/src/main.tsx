@@ -6,6 +6,7 @@ import "./globals.css";
 import { IoProvider } from "socket.io-react-hook";
 import { SpiritSelect } from "./SpiritSelect.tsx";
 import { Game } from "./Game.tsx";
+import NoSession from "./NoSession.tsx";
 
 const router = createBrowserRouter([
   {
@@ -25,8 +26,12 @@ const router = createBrowserRouter([
         element: <div>Finish</div>,
       },
       {
+        path: "nosession",
+        element: <NoSession />,
+      },
+      {
         path: "*",
-        element: <div>Not found</div>,
+        element: <NoSession />,
       },
     ],
   },

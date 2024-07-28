@@ -8,10 +8,22 @@ export default {
     "node_modules/daisyui/dist/**/*.js",
   ],
   theme: {
-    extend: {},
+    extend: {
+      animation: {
+        shake: "vertical-shaking 0.35s infinite",
+      },
+      keyframes: {
+        "vertical-shaking": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "25%": { transform: "translateY(5px)" },
+          "50%": { transform: "translateY(-5px)" },
+          "75%": { transform: "translateY(5px)" },
+        },
+      },
+    },
   },
   daisyui: {
-    themes: ["synthwave", "retro"],
+    themes: ["aqua"],
   },
   plugins: [daisyui],
 };

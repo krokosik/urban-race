@@ -10,7 +10,7 @@ export default function App() {
   const { socket, connected } = useProperSocket();
   const navigate = useNavigate();
 
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const sessionId = searchParams.get("sessionId");
   const state = useStore();
 
@@ -18,7 +18,7 @@ export default function App() {
     if (!connected || window.location.pathname !== "/") return;
 
     if (!sessionId) {
-      toast.error("No session ID provided. Try scanning the QR code again.");
+      navigate("/nosession");
     }
 
     socket.on("error", (error) => {
@@ -58,13 +58,36 @@ export default function App() {
 
   return (
     <div className="max-w-3xl mx-auto h-dvh">
-      {!state.game && (
+      {/* <button
+        className="btn"
+        onClick={() => {
+          socket.once("init", ({ sessionId }) => {
+            setSearchParams({ sessionId });
+          });
+          socket.emit("init", { slots: 4, maxScore: 10 });
+        }}
+      >
+        Init
+      </button>
+      <button
+        className="btn"
+        onClick={() => {
+          socket.emit("reset");
+          setSearchParams({});
+          navigate("/");
+        }}
+      >
+        Reset
+      </button> */}
+      {!state.game && window.location.pathname === "/" && (
         <div className="size-full flex flex-col gap-8 justify-center items-center">
           <span className="loading loading-spinner size-20"></span>
-          <span className="text-white text-lg">Connecting to server...</span>
+          <span className="text-white text-xl">Connecting to server...</span>
         </div>
       )}
-      <Outlet />
+      <main className="flex flex-col gap-4 items-center justify-center size-full px-4">
+        <Outlet />
+      </main>
       <ToastContainer position="bottom-center" theme="dark" />
     </div>
   );

@@ -1,3 +1,17 @@
+@import url(https://fonts.googleapis.com/css?family=Bangers);
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    html {
+        font-family: 'Bangers', cursive;
+    }
+}
+
+@layer components {
+    .comic-box {
+        @apply border-black border-solid border-t-[5px] border-r-[3px] border-b-[3px] border-l-[5px] rounded-[95%_4%_97%_5%/4%_94%_3%_95%] rotate-2 bg-white;
+    }
+}
