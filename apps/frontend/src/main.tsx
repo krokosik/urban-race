@@ -12,6 +12,7 @@ import { SpiritSelect } from "./SpiritSelect.tsx";
 import { Game } from "./Game.tsx";
 import NoSession from "./NoSession.tsx";
 import { toast, ToastContainer } from "react-toastify";
+import Finish from "./Finish.tsx";
 
 const router = createBrowserRouter([
   {
@@ -47,7 +48,7 @@ const router = createBrowserRouter([
       },
       {
         path: "finish",
-        element: <div>Finish</div>,
+        element: <Finish />,
       },
     ],
   },

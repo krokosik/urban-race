@@ -1,8 +1,35 @@
-export default function NoSession() {
+import clsx from "clsx";
+import { useStore } from "./store";
+
+export default function Finish() {
+  const players = useStore((state) => state.game?.players) ?? [];
+
   return (
-    <div className="size-full flex flex-col justify-center items-center px-8 gap-8 text-center">
-      <h1 className="text-4xl">Session not found</h1>
-      <p className="text-lg">Scan the current QR code to join a race!</p>
-    </div>
+    <>
+      <h1 className="text-5xl pt-8">Finish!</h1>
+      <p className="text-center tracking-wide">
+        Take a look at the top {Math.min(players.length, 3)} player
+        {players.length > 1 ? "s" : ""}!
+      </p>
+      {players
+        .sort((a, b) => b.score - a.score)
+        .map((player, idx) => (
+          <div
+            key={player.id}
+            className={clsx(
+              "box-border my-8 inline-block max-w-full overflow-hidden p-2 comic-box transition-all duration-300 ease-in-out ring-8 ring-offset-8",
+              idx === 0 && "ring-yellow-200 ring-offset-yellow-300 w-[40%]",
+              idx === 1 && "ring-gray-300 ring-offset-gray-400 w-[30%]",
+              idx === 2 && "ring-orange-600 ring-offset-orange-700 w-[25%]"
+            )}
+          >
+            <img
+              className="m-auto aspect-square cursor-pointer select-none object-contain"
+              src={`/spirits/${player.spirit}`}
+              alt={`Spirit ${player.spirit} of player ${player.id}`}
+            />
+          </div>
+        ))}
+    </>
   );
 }

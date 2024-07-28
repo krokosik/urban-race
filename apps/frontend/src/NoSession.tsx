@@ -18,7 +18,7 @@ export default function NoSession() {
                 setSearchParams({ sessionId });
                 navigate(`/?sessionId=${sessionId}`);
               });
-              socket.emit("init", { slots: 4, maxScore: 10 });
+              socket.emit("init", { slots: 3, maxScore: -1 });
             }}
           >
             Init
