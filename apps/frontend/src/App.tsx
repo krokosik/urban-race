@@ -23,6 +23,7 @@ export default function App() {
 
     socket.on("error", (error) => {
       toast.error(error.message);
+      navigate("/nosession");
     });
 
     socket.once("join", (data) => {
@@ -40,17 +41,31 @@ export default function App() {
     socket.on("finish", () => {
       navigate(`/finish?${searchParams.toString()}`);
     });
+    socket.on("players", (players) => {
+      state.setGame({ ...state.game!, players });
+    });
 
     socket.emit("join", { sessionId });
 
     return () => {
+      socket.off("join");
+      socket.off("availableSpirits");
+      socket.off("allSpirits");
+      socket.off("start");
+      socket.off("finish");
+      socket.off("players");
       socket.off("error");
     };
   }, [connected, sessionId]);
 
   useEffect(() => {
     if (state.game && window.location.pathname === "/") {
-      navigate(`/select?${searchParams.toString()}`);
+      if (state.game.started) {
+        toast.error("Game already started.");
+        navigate("/nosession");
+      } else {
+        navigate(`/select?${searchParams.toString()}`);
+      }
     } else {
       navigate(`/?${searchParams.toString()}`);
     }
@@ -58,7 +73,7 @@ export default function App() {
 
   return (
     <div className="max-w-3xl mx-auto h-dvh">
-      {/* <button
+      <button
         className="btn"
         onClick={() => {
           socket.once("init", ({ sessionId }) => {
@@ -78,7 +93,7 @@ export default function App() {
         }}
       >
         Reset
-      </button> */}
+      </button>
       {!state.game && window.location.pathname === "/" && (
         <div className="size-full flex flex-col gap-8 justify-center items-center">
           <span className="loading loading-spinner size-20"></span>

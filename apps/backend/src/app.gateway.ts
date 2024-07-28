@@ -33,38 +33,46 @@ export class AppGateway {
     socket: Socket,
     data: { slots: number; maxScore: number },
   ): Promise<WsResponse<{ sessionId: string; qrCodeBase64: string }>> {
-    this.LOG.log(
-      `Init game with ${data.slots} slots and max score ${data.maxScore}`,
-    );
-    const sessionId = this.appService.init(data?.slots, data?.maxScore);
-    this.appService.availableSpirits$.subscribe((spirits) => {
-      this.server.to(sessionId).emit('availableSpirits', spirits);
-    });
+    try {
+      this.LOG.log(
+        `Init game with ${data.slots} slots and max score ${data.maxScore}`,
+      );
+      const sessionId = this.appService.init(data?.slots, data?.maxScore);
+      this.appService.availableSpirits$.subscribe((spirits) => {
+        this.server.to(sessionId).emit('availableSpirits', spirits);
+      });
 
-    socket.join(this.gameRoom);
+      socket.join(this.gameRoom);
 
-    const qrCodeBase64 = await toDataURL(
-      `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173' : 'https://urban-race.nvlv-studio.com'}/?sessionId=${sessionId}`,
-    );
+      const qrCodeBase64 = await toDataURL(
+        `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173' : 'https://urban-race.nvlv-studio.com'}/?sessionId=${sessionId}`,
+      );
 
-    this.LOG.log(`Session ID: ${sessionId}`);
+      this.LOG.log(`Session ID: ${sessionId}`);
 
-    return { event: 'init', data: { sessionId, qrCodeBase64 } };
+      return { event: 'init', data: { sessionId, qrCodeBase64 } };
+    } catch (error) {
+      socket.emit('error', { message: error.message });
+    }
   }
 
   @SubscribeMessage('join')
   join(socket: Socket, data: { sessionId: string }): WsResponse<{}> {
-    this.LOG.log(`Someone joined session ${data.sessionId}`);
-    const game = this.appService.joinSession(data.sessionId);
-    socket.join(game.sessionId);
+    try {
+      this.LOG.log(`Someone joined session ${data.sessionId}`);
+      const game = this.appService.joinSession(data.sessionId);
+      socket.join(game.sessionId);
 
-    socket.emit('allSpirits', this.appService.spirits);
-    socket.emit('availableSpirits', this.appService.availableSpirits$.value);
+      socket.emit('allSpirits', this.appService.spirits);
+      socket.emit('availableSpirits', this.appService.availableSpirits$.value);
 
-    return {
-      event: 'join',
-      data: game,
-    };
+      return {
+        event: 'join',
+        data: game,
+      };
+    } catch (error) {
+      socket.emit('error', { message: error.message });
+    }
   }
 
   @SubscribeMessage('selectSpirit')
@@ -89,13 +97,17 @@ export class AppGateway {
   }
 
   @SubscribeMessage('start')
-  start(data: { sessionId: string }) {
-    if (this.appService.game.sessionId !== data.sessionId) {
-      return;
+  start(client: Socket, data: { sessionId: string }) {
+    try {
+      if (this.appService.game.sessionId !== data.sessionId) {
+        return;
+      }
+      this.appService.game.started = true;
+      this.server.to(data.sessionId).to(this.gameRoom).emit('start');
+      this.startPlayerNotification(data.sessionId);
+    } catch (error) {
+      client.emit('error', { message: error.message });
     }
-    this.appService.game.started = true;
-    this.server.to(data.sessionId).to(this.gameRoom).emit('start');
-    this.startPlayerNotification(data.sessionId);
   }
 
   private startPlayerNotification(sessionId: string) {
@@ -112,28 +124,41 @@ export class AppGateway {
 
   @SubscribeMessage('addScore')
   addScore(client: Socket, data: { sessionId: string; score: number }) {
-    if (this.appService.game.finished || !this.appService.game.sessionId) {
-      return;
-    }
-    this.appService.addScore(data.sessionId, client.id, data.score);
-    if (this.appService.game.finished) {
-      this.server.to(data.sessionId).to(this.gameRoom).emit('finish');
-      this.playersSubscription?.unsubscribe();
-      this.playersSubscription = null;
+    try {
+      if (this.appService.game.finished || !this.appService.game.sessionId) {
+        return;
+      }
+      this.appService.addScore(data.sessionId, client.id, data.score);
+      if (this.appService.game.finished) {
+        this.server.to(data.sessionId).to(this.gameRoom).emit('finish');
+        this.playersSubscription?.unsubscribe();
+        this.playersSubscription = null;
+        this.LOG.log('Game finished');
+        this.server
+          .to(data.sessionId)
+          .to(this.gameRoom)
+          .emit('players', this.appService.game.players);
+      }
+    } catch (error) {
+      client.emit('error', { message: error.message });
     }
   }
 
   @SubscribeMessage('reset')
   reset(client: Socket) {
-    this.LOG.log('Resetting game');
-    const sessionId = this.appService.game.sessionId;
-    this.appService.reset();
-    this.server.to(this.gameRoom).emit('reset');
-    if (sessionId) {
-      this.server.to(sessionId).emit('reset');
+    try {
+      this.LOG.log('Resetting game');
+      const sessionId = this.appService.game.sessionId;
+      this.appService.reset();
+      this.server.to(this.gameRoom).emit('reset');
+      if (sessionId) {
+        this.server.to(sessionId).emit('reset');
+      }
+      this.playersSubscription?.unsubscribe();
+      this.playersSubscription = null;
+      client.leave(this.gameRoom);
+    } catch (error) {
+      client.emit('error', { message: error.message });
     }
-    this.playersSubscription?.unsubscribe();
-    this.playersSubscription = null;
-    client.leave(this.gameRoom);
   }
 }
