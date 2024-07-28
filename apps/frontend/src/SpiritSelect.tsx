@@ -77,8 +77,8 @@ export const SpiritSelect = () => {
             "w-full text-center"
           )}
         >
-          <h2 className="text-xl">Waiting for others...</h2>
           <span className="mt-2 loading loading-spinner loading-lg"></span>
+          <h2 className="text-xl">Waiting for others...</h2>
         </div>
       }
     </>

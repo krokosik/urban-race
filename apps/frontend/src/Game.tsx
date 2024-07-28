@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useProperSocket } from "./hooks";
 
@@ -7,7 +7,7 @@ export const Game = () => {
   const [searchParams] = useSearchParams();
   const [timeToStart, setTimeToStart] = useState<number>(5);
   const sessionId = searchParams.get("sessionId");
-  const [score, setScore] = useState<number>(0);
+  const score = useRef<number>(0);
 
   useEffect(() => {
     if (timeToStart === 0) {
@@ -21,7 +21,7 @@ export const Game = () => {
 
   const motionDetection = useCallback((event: DeviceMotionEvent) => {
     const { x = 0, y = 0, z = 0 } = event.acceleration ?? {};
-    setScore((prev) => prev + Math.sqrt(x! ** 2 + y! ** 2 + z! ** 2) / 1000);
+    score.current += Math.sqrt(x! ** 2 + y! ** 2 + z! ** 2) / 1000;
   }, []);
 
   useEffect(() => {
@@ -31,9 +31,9 @@ export const Game = () => {
     const interval = setInterval(() => {
       socket.emit("addScore", {
         sessionId,
-        score,
+        score: score.current,
       });
-      setScore(0);
+      score.current = 0;
     }, 500);
 
     window.addEventListener("devicemotion", motionDetection, true);
