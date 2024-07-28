@@ -61,6 +61,9 @@ export class AppGateway {
     try {
       this.LOG.log(`Someone joined session ${data.sessionId}`);
       const game = this.appService.joinSession(data.sessionId);
+      if (game.started) {
+        socket.emit('error', { message: 'Game already started.' });
+      }
       socket.join(game.sessionId);
 
       socket.emit('allSpirits', this.appService.spirits);
@@ -125,9 +128,6 @@ export class AppGateway {
   @SubscribeMessage('addScore')
   addScore(client: Socket, data: { sessionId: string; score: number }) {
     try {
-      if (this.appService.game.finished || !this.appService.game.sessionId) {
-        return;
-      }
       this.appService.addScore(data.sessionId, client.id, data.score);
       if (this.appService.game.finished) {
         this.server.to(data.sessionId).to(this.gameRoom).emit('finish');

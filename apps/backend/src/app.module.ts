@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { AppGateway } from './app.gateway';
 import { AppService } from './app.service';
 import { LoggerModule } from 'nestjs-pino';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { LoggerModule } from 'nestjs-pino';
       },
     }),
   ],
-  controllers: [],
+  controllers: [AppController],
   providers: [AppService, AppGateway],
 })
 export class AppModule {}

@@ -106,6 +106,10 @@ export class AppService {
   public addScore(sessionId: string, playerId: string, score: number): void {
     this.checkSession(sessionId);
 
+    if (!this.game.started || this.game.finished) {
+      throw new Error('Game is not running.');
+    }
+
     const player = this.findPlayer(playerId);
     if (!player) {
       throw new Error('Player not found.');
