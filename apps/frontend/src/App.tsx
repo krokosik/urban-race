@@ -1,33 +1,52 @@
 import { useEffect } from "react";
 import { Outlet, useLoaderData, useNavigate } from "react-router";
 import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { useProperSocket } from "./hooks";
 import { Game, useStore } from "./store";
+
+import "react-toastify/dist/ReactToastify.css";
 
 export default function App() {
   const { socket } = useProperSocket();
   const navigate = useNavigate();
 
   const rawGame = useLoaderData() as Game;
-  const setGame = useStore((state) => state.setGame);
-  const setSpirits = useStore((state) => state.setSpirits);
-  const setPlayers = useStore((state) => state.setPlayers);
+  const actions = useStore(
+    ({
+      setCountdownGame,
+      setCountdownLobby,
+      setGame,
+      setPlayers,
+      setSpirits,
+    }) => ({
+      setCountdownGame,
+      setCountdownLobby,
+      setGame,
+      setPlayers,
+      setSpirits,
+    })
+  );
   const sessionId = useStore((state) => state.game?.sessionId);
 
   useEffect(() => {
-    setGame(rawGame);
+    actions.setGame(rawGame);
 
     socket.on("error", (error) => {
       toast.error(error.message);
       navigate("/nosession");
     });
-    socket.on("allSpirits", (spirits) => setSpirits(spirits));
+    socket.on("allSpirits", (spirits) => actions.setSpirits(spirits));
     socket.on("start", () => navigate(`/game?sessionId=${sessionId}`));
     socket.on("finish", () => navigate(`/finish?sessionId=${sessionId}`));
-    socket.on("players", (players) => setPlayers(players));
+    socket.on("players", (players) => actions.setPlayers(players));
+    socket.on("countdown-lobby", ({ countdown }) =>
+      actions.setCountdownLobby(countdown)
+    );
+    socket.on("countdown-game", ({ countdown }) =>
+      actions.setCountdownGame(countdown)
+    );
 
-    socket.once("join", (data) => setGame(data));
+    socket.once("join", (data) => actions.setGame(data));
     socket.emit("join", { sessionId: sessionId });
 
     return () => {

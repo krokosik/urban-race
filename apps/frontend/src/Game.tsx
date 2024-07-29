@@ -1,22 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useProperSocket } from "./hooks";
 import { useStore } from "./store";
 
 export const Game = () => {
   const { socket } = useProperSocket();
-  const [timeToStart, setTimeToStart] = useState<number>(5);
+  const countdownGame = useStore((state) => state.countdownGame ?? 1000);
   const sessionId = useStore((state) => state.game?.sessionId);
   const score = useRef<number>(0);
-
-  useEffect(() => {
-    if (timeToStart === 0) {
-      return;
-    }
-    const timeout = setTimeout(() => {
-      setTimeToStart((prev) => prev - 1);
-    }, 1000);
-    return () => clearTimeout(timeout);
-  }, [timeToStart]);
 
   const motionDetection = useCallback((event: DeviceMotionEvent) => {
     const { x = 0, y = 0, z = 0 } = event.acceleration ?? {};
@@ -24,7 +14,7 @@ export const Game = () => {
   }, []);
 
   useEffect(() => {
-    if (timeToStart > 0) {
+    if (countdownGame > 0) {
       return;
     }
     const interval = setInterval(() => {
@@ -40,12 +30,16 @@ export const Game = () => {
       clearInterval(interval);
       window.removeEventListener("devicemotion", motionDetection);
     };
-  }, [motionDetection, timeToStart, sessionId, socket]);
+  }, [motionDetection, countdownGame > 0, sessionId, socket]);
 
-  return timeToStart > 0 ? (
+  if (countdownGame > 3) {
+    return <h1 className="animate-pulse">Przygotuj się!</h1>;
+  }
+
+  return countdownGame > 0 ? (
     <span className="countdown">
       {/* @ts-ignore */}
-      <h1 style={{ "--value": timeToStart }}></h1>
+      <h1 style={{ "--value": countdownGame }}></h1>
     </span>
   ) : (
     <h1 className="animate-shake">Jazda!</h1>

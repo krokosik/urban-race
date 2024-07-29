@@ -10,6 +10,7 @@ export default function Finish() {
       <p className="text-center">Oto nasi najlepsi zawodnicy!</p>
       {players
         .sort((a, b) => b.score - a.score)
+        .slice(0, 3)
         .map((player, idx) => (
           <div
             key={player.id}

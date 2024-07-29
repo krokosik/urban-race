@@ -6,7 +6,7 @@ import {
 } from '@nestjs/websockets';
 import { Logger } from 'nestjs-pino';
 import { toDataURL } from 'qrcode';
-import { interval, mergeMap, takeUntil } from 'rxjs';
+import { filter, interval, mergeMap, takeUntil } from 'rxjs';
 import { Server, Socket } from 'socket.io';
 import { AppService } from './app.service';
 
@@ -65,8 +65,21 @@ export class AppGateway {
       this.server.to(sessionId).to(this.gameRoom).emit('finish');
       this.LOG.log('Game finished');
     });
-    this.appService.start$
+    this.appService.countdownLobby$.subscribe((countdown) => {
+      this.server
+        .to(sessionId)
+        .to(this.gameRoom)
+        .emit('countdown-lobby', { countdown });
+    });
+    this.appService.countdownGame$.subscribe((countdown) => {
+      this.server
+        .to(sessionId)
+        .to(this.gameRoom)
+        .emit('countdown-game', { countdown });
+    });
+    this.appService.countdownGame$
       .pipe(
+        filter((countdown) => countdown === 0),
         mergeMap(() => interval(300)),
         takeUntil(this.appService.finish$),
       )

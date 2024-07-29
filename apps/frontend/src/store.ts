@@ -5,9 +5,13 @@ import { devtools } from "zustand/middleware";
 interface State {
   game?: Game;
   spirits: string[];
+  countdownLobby?: number;
+  countdownGame?: number;
   setGame: (game: Game) => void;
   setPlayers: (players: Player[]) => void;
   setSpirits: (spirits: string[]) => void;
+  setCountdownLobby: (countdown: number) => void;
+  setCountdownGame: (countdown: number) => void;
 }
 
 export interface Player {
@@ -38,5 +42,7 @@ export const useStore = create<State>()(
         return { game: { ...game, players } };
       }),
     setSpirits: (spirits) => set({ spirits }),
+    setCountdownLobby: (countdownLobby) => set({ countdownLobby }),
+    setCountdownGame: (countdownGame) => set({ countdownGame }),
   }))
 );

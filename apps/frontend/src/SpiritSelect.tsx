@@ -13,6 +13,7 @@ export const SpiritSelect = () => {
     (state) =>
       state.game?.players.find((player) => player.id === socket.id)?.spirit
   );
+  const countdownLobby = useStore((state) => state.countdownLobby);
   const sessionId = useStore((state) => state.game?.sessionId);
   const [permission, setPermission] = useState<boolean>(
     !(DeviceMotionEvent as any)?.requestPermission
@@ -81,11 +82,11 @@ export const SpiritSelect = () => {
       {
         <div
           className={clsx(
-            selectedSpirit ? "opacity-100" : "opacity-0",
+            countdownLobby ? "opacity-100" : "opacity-0",
             "w-full text-center mb-8 flex-1"
           )}
         >
-          <span className="loading loading-spinner loading-lg"></span>
+          <h3>{countdownLobby}</h3>
           <p>Czekamy na innych...</p>
         </div>
       }

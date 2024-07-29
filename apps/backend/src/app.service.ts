@@ -1,16 +1,62 @@
 import { Injectable } from '@nestjs/common';
 import { nanoid } from 'nanoid';
-import { Game, Player } from './interfaces';
-import { BehaviorSubject, Subject } from 'rxjs';
 import { readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import {
+  BehaviorSubject,
+  filter,
+  map,
+  Subject,
+  Subscription,
+  take,
+  timer,
+} from 'rxjs';
+import { Game, Player } from './interfaces';
 
 @Injectable()
 export class AppService {
   public game: Game = this.baseGame;
-  public players$: BehaviorSubject<Player[]> = new BehaviorSubject([]);
-  public start$: Subject<void> = new Subject();
-  public finish$: Subject<void> = new Subject();
+  public players$: BehaviorSubject<Player[]>;
+  public start$: Subject<void>;
+  public finish$: Subject<void>;
+  public countdownLobby$: Subject<number>;
+  public countdownGame$: Subject<number>;
+
+  private timerSubscription: Subscription | null = null;
+  private readonly countdownLobby = 30;
+  private readonly countdownGame = 6;
+
+  constructor() {
+    this.initObservables();
+  }
+
+  private initObservables() {
+    this.players$?.complete();
+    this.start$?.complete();
+    this.finish$?.complete();
+
+    this.timerSubscription?.unsubscribe();
+
+    this.players$ = new BehaviorSubject(this.game.players);
+    this.start$ = new Subject();
+    this.finish$ = new Subject();
+    this.countdownLobby$ = new Subject();
+    this.countdownGame$ = new Subject();
+    this.countdownLobby$
+      .pipe(filter((i) => i === 0))
+      .subscribe(() => this.start$.next());
+
+    this.start$.subscribe(() => {
+      this.game.started = true;
+      this.setupTimer(this.countdownGame$, this.countdownGame);
+    });
+
+    this.finish$.subscribe(() => {
+      this.game.finished = true;
+      this.timerSubscription?.unsubscribe();
+      this.timerSubscription = null;
+    });
+  }
 
   get baseGame(): Game {
     return {
@@ -72,7 +118,7 @@ export class AppService {
     }
 
     if (!this.spirits.includes(spirit)) {
-      throw new Error('Sprite not available.');
+      throw new Error('Spirit not available.');
     }
 
     const player = this.findPlayer(playerId);
@@ -88,11 +134,20 @@ export class AppService {
     }
 
     this.players$.next(this.game.players);
+    this.setupTimer(
+      this.countdownLobby$,
+      this.game.players.length < this.game.slots ? this.countdownLobby : 0,
+    );
+  }
 
-    if (this.game.players.length === this.game.slots) {
-      this.game.started = true;
-      this.start$.next();
-    }
+  private setupTimer(countdown$: Subject<number>, countdown: number) {
+    this.timerSubscription?.unsubscribe();
+    this.timerSubscription = timer(0, 1000)
+      .pipe(
+        take(countdown + 1),
+        map((i) => countdown - i),
+      )
+      .subscribe((i) => countdown$.next(i));
   }
 
   private findPlayer(playerId: string): Player | null {
@@ -116,10 +171,12 @@ export class AppService {
       throw new Error('Player not found.');
     }
 
-    player.score += score;
+    player.score = Math.min(
+      Math.round((score + player.score) * 100) / 100,
+      this.game.maxScore,
+    );
 
     if (player.score >= this.game.maxScore) {
-      this.game.finished = true;
       this.finish$.next();
       this.players$.next(this.game.players);
     }
@@ -129,11 +186,6 @@ export class AppService {
     this.game = {
       ...this.baseGame,
     };
-    this.players$.complete();
-    this.players$ = new BehaviorSubject([]);
-    this.start$.complete();
-    this.start$ = new Subject();
-    this.finish$.complete();
-    this.finish$ = new Subject();
+    this.initObservables();
   }
 }

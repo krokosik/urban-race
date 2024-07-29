@@ -1,4 +1,4 @@
-@import url(https://fonts.googleapis.com/css?family=Bangers);
+@import url('https://fonts.googleapis.com/css2?family=Bangers&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,7 +6,7 @@
 
 @layer base {
     html {
-        font-family: 'Bangers', cursive;
+        font-family: 'Bangers';
     }
 
     h1 {
