@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { nanoid } from 'nanoid';
 import { Game, Player } from './interfaces';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -9,6 +9,8 @@ import { join } from 'node:path';
 export class AppService {
   public game: Game = this.baseGame;
   public players$: BehaviorSubject<Player[]> = new BehaviorSubject([]);
+  public start$: Subject<void> = new Subject();
+  public finish$: Subject<void> = new Subject();
 
   get baseGame(): Game {
     return {
@@ -85,11 +87,12 @@ export class AppService {
       });
     }
 
+    this.players$.next(this.game.players);
+
     if (this.game.players.length === this.game.slots) {
       this.game.started = true;
+      this.start$.next();
     }
-
-    this.players$.next(this.game.players);
   }
 
   private findPlayer(playerId: string): Player | null {
@@ -117,6 +120,7 @@ export class AppService {
 
     if (player.score >= this.game.maxScore) {
       this.game.finished = true;
+      this.finish$.next();
       this.players$.next(this.game.players);
     }
   }
@@ -127,5 +131,9 @@ export class AppService {
     };
     this.players$.complete();
     this.players$ = new BehaviorSubject([]);
+    this.start$.complete();
+    this.start$ = new Subject();
+    this.finish$.complete();
+    this.finish$ = new Subject();
   }
 }

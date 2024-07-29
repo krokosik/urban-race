@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
 import { useProperSocket } from "./hooks";
+import { useStore } from "./store";
 
 export const Game = () => {
   const { socket } = useProperSocket();
-  const [searchParams] = useSearchParams();
   const [timeToStart, setTimeToStart] = useState<number>(5);
-  const sessionId = searchParams.get("sessionId");
+  const sessionId = useStore((state) => state.game?.sessionId);
   const score = useRef<number>(0);
 
   useEffect(() => {
