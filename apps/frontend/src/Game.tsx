@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
-import { useProperSocket } from "./hooks";
+import { usePlayerId, useProperSocket } from "./hooks";
 import { useStore } from "./store";
 
 export const Game = () => {
@@ -7,6 +7,7 @@ export const Game = () => {
   const countdownGame = useStore((state) => state.countdownGame ?? 1000);
   const sessionId = useStore((state) => state.game?.sessionId);
   const score = useRef<number>(0);
+  const playerId = usePlayerId();
 
   const motionDetection = useCallback((event: DeviceMotionEvent) => {
     const { x = 0, y = 0, z = 0 } = event.acceleration ?? {};
@@ -20,10 +21,11 @@ export const Game = () => {
     const interval = setInterval(() => {
       socket.emit("addScore", {
         sessionId,
+        playerId,
         score: score.current,
       });
       score.current = 0;
-    }, 500);
+    }, 250);
 
     window.addEventListener("devicemotion", motionDetection, true);
     return () => {

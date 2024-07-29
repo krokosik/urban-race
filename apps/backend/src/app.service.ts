@@ -131,13 +131,13 @@ export class AppService {
         score: 0,
         spirit: spirit,
       });
+      this.setupTimer(
+        this.countdownLobby$,
+        this.game.players.length < this.game.slots ? this.countdownLobby : 0,
+      );
     }
 
     this.players$.next(this.game.players);
-    this.setupTimer(
-      this.countdownLobby$,
-      this.game.players.length < this.game.slots ? this.countdownLobby : 0,
-    );
   }
 
   private setupTimer(countdown$: Subject<number>, countdown: number) {

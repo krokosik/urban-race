@@ -113,15 +113,25 @@ export class AppGateway {
   }
 
   @SubscribeMessage('selectSpirit')
-  selectSpirit(client: Socket, data: { sessionId: string; spirit: string }) {
-    this.LOG.log(`Player ${client.id} selected spirit ${data.spirit}`);
-    this.appService.selectSpirit(data.sessionId, client.id, data.spirit);
+  selectSpirit(
+    client: Socket,
+    data: { sessionId: string; playerId: string; spirit: string },
+  ) {
+    try {
+      this.LOG.log(`Player ${data.playerId} selected spirit ${data.spirit}`);
+      this.appService.selectSpirit(data.sessionId, data.playerId, data.spirit);
+    } catch (error) {
+      client.emit('error', { message: error.message });
+    }
   }
 
   @SubscribeMessage('addScore')
-  addScore(client: Socket, data: { sessionId: string; score: number }) {
+  addScore(
+    client: Socket,
+    data: { sessionId: string; playerId: string; score: number },
+  ) {
     try {
-      this.appService.addScore(data.sessionId, client.id, data.score);
+      this.appService.addScore(data.sessionId, data.playerId, data.score);
     } catch (error) {
       client.emit('error', { message: error.message });
     }

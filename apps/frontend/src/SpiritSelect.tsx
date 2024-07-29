@@ -1,17 +1,18 @@
 import clsx from "clsx";
 import { useCallback, useState } from "react";
-import { useProperSocket } from "./hooks";
+import { usePlayerId, useProperSocket } from "./hooks";
 import { useStore } from "./store";
 
 export const SpiritSelect = () => {
   const { socket } = useProperSocket();
+  const playerId = usePlayerId();
   const spirits = useStore((state) => state.spirits);
   const takenSpirits = useStore((state) =>
     state.game?.players.map((player) => player.spirit)
   );
   const selectedSpirit = useStore(
     (state) =>
-      state.game?.players.find((player) => player.id === socket.id)?.spirit
+      state.game?.players.find((player) => player.id === playerId)?.spirit
   );
   const countdownLobby = useStore((state) => state.countdownLobby);
   const sessionId = useStore((state) => state.game?.sessionId);
@@ -33,7 +34,7 @@ export const SpiritSelect = () => {
 
   const selectSpirit = useCallback(
     (spirit: string) => () => {
-      socket.emit("selectSpirit", { sessionId, spirit });
+      socket.emit("selectSpirit", { sessionId, playerId, spirit });
     },
     [sessionId, socket]
   );
