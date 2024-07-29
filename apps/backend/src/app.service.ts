@@ -8,7 +8,7 @@ import { join } from 'node:path';
 @Injectable()
 export class AppService {
   public game: Game = this.baseGame;
-  public availableSpirits$: BehaviorSubject<string[]> = new BehaviorSubject([]);
+  public players$: BehaviorSubject<Player[]> = new BehaviorSubject([]);
 
   get baseGame(): Game {
     return {
@@ -39,7 +39,7 @@ export class AppService {
       maxScore,
     };
 
-    this.availableSpirits$.next(this.spirits);
+    this.players$.next(this.game.players);
 
     return this.game.sessionId;
   }
@@ -74,10 +74,8 @@ export class AppService {
     }
 
     const player = this.findPlayer(playerId);
-    const availableSpirits = this.availableSpirits$.value;
 
     if (player) {
-      availableSpirits.push(player.spirit);
       player.spirit = spirit;
     } else {
       this.game.players.push({
@@ -91,7 +89,7 @@ export class AppService {
       this.game.started = true;
     }
 
-    this.availableSpirits$.next(availableSpirits.filter((s) => s !== spirit));
+    this.players$.next(this.game.players);
   }
 
   private findPlayer(playerId: string): Player | null {
@@ -119,6 +117,7 @@ export class AppService {
 
     if (player.score >= this.game.maxScore) {
       this.game.finished = true;
+      this.players$.next(this.game.players);
     }
   }
 
@@ -126,7 +125,7 @@ export class AppService {
     this.game = {
       ...this.baseGame,
     };
-    this.availableSpirits$.complete();
-    this.availableSpirits$ = new BehaviorSubject([]);
+    this.players$.complete();
+    this.players$ = new BehaviorSubject([]);
   }
 }

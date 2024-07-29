@@ -38,8 +38,8 @@ export class AppGateway {
         `Init game with ${data.slots} slots and max score ${data.maxScore}`,
       );
       const sessionId = this.appService.init(data?.slots, data?.maxScore);
-      this.appService.availableSpirits$.subscribe((spirits) => {
-        this.server.to(sessionId).emit('availableSpirits', spirits);
+      this.appService.players$.subscribe((players) => {
+        this.server.to(sessionId).to(this.gameRoom).emit('players', players);
       });
 
       socket.join(this.gameRoom);
@@ -67,7 +67,7 @@ export class AppGateway {
       socket.join(game.sessionId);
 
       socket.emit('allSpirits', this.appService.spirits);
-      socket.emit('availableSpirits', this.appService.availableSpirits$.value);
+      socket.emit('players', this.appService.players$.value);
 
       return {
         event: 'join',
@@ -85,11 +85,6 @@ export class AppGateway {
   ): WsResponse<string> {
     this.LOG.log(`Player ${client.id} selected spirit ${data.spirit}`);
     this.appService.selectSpirit(data.sessionId, client.id, data.spirit);
-
-    this.server
-      .to(data.sessionId)
-      .to(this.gameRoom)
-      .emit('players', this.appService.game.players);
 
     if (this.appService.game.started) {
       this.server.to(data.sessionId).to(this.gameRoom).emit('start');
@@ -119,7 +114,6 @@ export class AppGateway {
     this.playersSubscription?.unsubscribe();
     this.playersSubscription = interval(300).subscribe(() => {
       this.server
-        .to(sessionId)
         .to(this.gameRoom)
         .emit('players', this.appService.game.players);
     });
@@ -134,10 +128,6 @@ export class AppGateway {
         this.playersSubscription?.unsubscribe();
         this.playersSubscription = null;
         this.LOG.log('Game finished');
-        this.server
-          .to(data.sessionId)
-          .to(this.gameRoom)
-          .emit('players', this.appService.game.players);
       }
     } catch (error) {
       client.emit('error', { message: error.message });

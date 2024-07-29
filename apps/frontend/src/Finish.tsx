@@ -6,11 +6,8 @@ export default function Finish() {
 
   return (
     <>
-      <h1 className="text-5xl pt-8">Finish!</h1>
-      <p className="text-center tracking-wide">
-        Take a look at the top {Math.min(players.length, 3)} player
-        {players.length > 1 ? "s" : ""}!
-      </p>
+      <h2 className="pt-8">Koniec!</h2>
+      <p className="text-center">Oto nasi najlepsi zawodnicy!</p>
       {players
         .sort((a, b) => b.score - a.score)
         .map((player, idx) => (

@@ -10,36 +10,25 @@ export default function App() {
   const navigate = useNavigate();
 
   const rawGame = useLoaderData() as Game;
-  const state = useStore();
+  const setGame = useStore((state) => state.setGame);
+  const setSpirits = useStore((state) => state.setSpirits);
+  const setPlayers = useStore((state) => state.setPlayers);
+  const sessionId = useStore((state) => state.game?.sessionId);
 
   useEffect(() => {
-    state.setGame(rawGame);
+    setGame(rawGame);
 
     socket.on("error", (error) => {
       toast.error(error.message);
       navigate("/nosession");
     });
+    socket.on("allSpirits", (spirits) => setSpirits(spirits));
+    socket.on("start", () => navigate(`/game?sessionId=${sessionId}`));
+    socket.on("finish", () => navigate(`/finish?sessionId=${sessionId}`));
+    socket.on("players", (players) => setPlayers(players));
 
-    socket.once("join", (data) => {
-      state.setGame(data);
-    });
-    socket.on("availableSpirits", (spirits) => {
-      state.setAvailableSpirits(spirits);
-    });
-    socket.on("allSpirits", (spirits) => {
-      state.setSpirits(spirits);
-    });
-    socket.on("start", () => {
-      navigate(`/game?sessionId=${state.game?.sessionId}`);
-    });
-    socket.on("finish", () => {
-      navigate(`/finish?sessionId=${state.game?.sessionId}`);
-    });
-    socket.on("players", (players) => {
-      state.setGame({ ...state.game!, players });
-    });
-
-    socket.emit("join", { sessionId: state.game?.sessionId });
+    socket.once("join", (data) => setGame(data));
+    socket.emit("join", { sessionId: sessionId });
 
     return () => {
       socket.off("join");
@@ -50,7 +39,7 @@ export default function App() {
       socket.off("players");
       socket.off("error");
     };
-  }, [socket, state.game?.sessionId]);
+  }, [socket, sessionId]);
 
   return (
     <div className="max-w-3xl mx-auto h-dvh">

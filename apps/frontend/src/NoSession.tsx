@@ -18,7 +18,7 @@ export default function NoSession() {
                 setSearchParams({ sessionId });
                 navigate(`/?sessionId=${sessionId}`);
               });
-              socket.emit("init", { slots: 3, maxScore: 10 });
+              socket.emit("init", { slots: 3, maxScore: -1 });
             }}
           >
             Init
@@ -34,9 +34,9 @@ export default function NoSession() {
           </button>
         </>
       )}
-      <h1 className="text-4xl">Error encountered</h1>
-      <p className="text-lg tracking-wide">
-        Scan the current QR code to rejoin
+      <h3>Mamy kłopot :(</h3>
+      <p className="tracking-wide">
+        Zeskanuj aktualny kod QR, aby dołączyć do gry.
       </p>
     </div>
   );

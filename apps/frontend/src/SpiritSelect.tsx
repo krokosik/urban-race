@@ -1,15 +1,19 @@
 import clsx from "clsx";
 import { useCallback, useState } from "react";
-import { useSearchParams } from "react-router-dom";
 import { useProperSocket } from "./hooks";
 import { useStore } from "./store";
 
 export const SpiritSelect = () => {
-  const { spirits, availableSpirits } = useStore();
   const { socket } = useProperSocket();
-  const [selectedSpirit, setSelectedSpirit] = useState<string | null>(null);
-  const [searchParams] = useSearchParams();
-  const sessionId = searchParams.get("sessionId");
+  const spirits = useStore((state) => state.spirits);
+  const takenSpirits = useStore((state) =>
+    state.game?.players.map((player) => player.spirit)
+  );
+  const selectedSpirit = useStore(
+    (state) =>
+      state.game?.players.find((player) => player.id === socket.id)?.spirit
+  );
+  const sessionId = useStore((state) => state.game?.sessionId);
   const [permission, setPermission] = useState<boolean>(
     !(DeviceMotionEvent as any)?.requestPermission
   );
@@ -26,32 +30,36 @@ export const SpiritSelect = () => {
       .catch(console.error);
   }, []);
 
+  const selectSpirit = useCallback(
+    (spirit: string) => () => {
+      socket.emit("selectSpirit", { sessionId, spirit });
+    },
+    [sessionId, socket]
+  );
+
   return (
     <>
-      <h1 className="text-5xl pt-8">Select your racer!</h1>
-      <p className="text-center tracking-wide">
-        Racing will involve shaking your device as hard as you can!
+      <h2 className="pt-8 text-center">Wybierz swojego zawodnika!</h2>
+      <p className="text-center">
+        Wyścig będzie polegał na potrząsaniu telefonem tak jakbyś biegł.
         <br />
-        Give it your best and become the champion!
+        Daj z siebie wszystko i zostań mistrzem!
       </p>
       {permission ? (
-        <div className="grid grid-flow-row gap-4 grid-cols-2 py-4">
+        <div className="grid grid-flow-row gap-4 grid-cols-2 py-4 w-full flex-grow-0 flex-shrink basis-full">
           {spirits.map((spirit) => (
             <button
               key={spirit}
-              disabled={!availableSpirits.includes(spirit)}
+              disabled={takenSpirits?.includes(spirit)}
               className={clsx(
-                "box-border inline-block max-w-full overflow-hidden p-2 comic-box transition-all duration-300 ease-in-out",
-                !availableSpirits.includes(spirit) &&
+                "box-border inline-block max-w-full overflow-hidden p-2 comic-box transition-all duration-300 ease-in-out min-w-full aspect-square",
+                takenSpirits?.includes(spirit) &&
                   selectedSpirit !== spirit &&
                   "brightness-50 grayscale",
                 selectedSpirit === spirit &&
                   "ring-8 ring-blue-300 ring-offset-8"
               )}
-              onClick={() => {
-                setSelectedSpirit(spirit);
-                socket.emit("selectSpirit", { sessionId, spirit });
-              }}
+              onClick={selectSpirit(spirit)}
             >
               <img
                 className="m-auto aspect-square cursor-pointer select-none object-contain"
@@ -66,7 +74,7 @@ export const SpiritSelect = () => {
           className="btn text-xl tracking-wider"
           onClick={requestPermission}
         >
-          Request motion permission
+          Zezwól na użycie akcelerometru
         </button>
       )}
 
@@ -74,11 +82,11 @@ export const SpiritSelect = () => {
         <div
           className={clsx(
             selectedSpirit ? "opacity-100" : "opacity-0",
-            "w-full text-center"
+            "w-full text-center mb-8 flex-1"
           )}
         >
-          <span className="mt-2 loading loading-spinner loading-lg"></span>
-          <h2 className="text-xl">Waiting for others...</h2>
+          <span className="loading loading-spinner loading-lg"></span>
+          <p>Czekamy na innych...</p>
         </div>
       }
     </>

@@ -8,9 +8,30 @@
     html {
         font-family: 'Bangers', cursive;
     }
+
+    h1 {
+        @apply text-7xl;
+    }
+
+    h2 {
+        @apply text-5xl;
+    }
+
+    h3 {
+        @apply text-4xl;
+    }
+
+    h4 {
+        @apply text-3xl;
+    }
+
+    p {
+        @apply text-lg tracking-wide;
+    }
 }
 
 @layer components {
+    /* https://codepen.io/mp/pen/kBEeKw */
     .comic-box {
         @apply border-black border-solid border-t-[5px] border-r-[3px] border-b-[3px] border-l-[5px] rounded-[95%_4%_97%_5%/4%_94%_3%_95%] rotate-2 bg-white;
     }

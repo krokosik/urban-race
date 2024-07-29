@@ -46,9 +46,9 @@ export const Game = () => {
   return timeToStart > 0 ? (
     <span className="countdown">
       {/* @ts-ignore */}
-      <h1 className="text-7xl" style={{ "--value": timeToStart }}></h1>
+      <h1 style={{ "--value": timeToStart }}></h1>
     </span>
   ) : (
-    <h1 className="text-7xl animate-shake">Go!</h1>
+    <h1 className="animate-shake">Jazda!</h1>
   );
 };
