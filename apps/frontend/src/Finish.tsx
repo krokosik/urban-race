@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { useStore } from "./store";
+import { usePlayerId } from "./hooks";
 
 export default function Finish() {
   const players =
@@ -9,6 +10,7 @@ export default function Finish() {
         .sort((a, b) => a.time! - b.time!)
         .slice(0, 3)
     ) ?? [];
+  const playerId = usePlayerId();
 
   return (
     <>
@@ -33,7 +35,11 @@ export default function Finish() {
         return (
           <div
             key={player.id}
-            className="my-8 w-full flex justify-center gap-12 items-center"
+            className={clsx(
+              "my-8 w-full flex justify-center gap-12 items-center",
+              player.id === playerId &&
+                "comic-box p-6 ring-4 ring-blue-400 ring-offset-4 text-neutral"
+            )}
           >
             <div
               className={clsx(

@@ -60,9 +60,7 @@ export default function App() {
           return;
         }
         case GameErrorType.GameNotRunning: {
-          message = "Gra się zakończyła";
-          description = "Poczekaj na rozpoczęcie kolejnego wyścigu.";
-          break;
+          return;
         }
         case GameErrorType.PlayerNotFound: {
           message = "Nie znaleziono gracza";

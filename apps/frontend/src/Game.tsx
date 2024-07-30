@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { usePlayerId, useProperSocket } from "./hooks";
 import { useStore } from "./store";
+import clsx from "clsx";
 
 export const Game = () => {
   const { socket } = useProperSocket();
@@ -8,10 +9,8 @@ export const Game = () => {
   const sessionId = useStore((state) => state.game?.sessionId);
   const score = useRef<number>(0);
   const playerId = usePlayerId();
-  const hasFinished = useStore(
-    (state) =>
-      (state.game?.players.find((p) => p.id === playerId)?.score ?? -1) >
-      (state.game?.maxScore ?? Number.POSITIVE_INFINITY)
+  const player = useStore((state) =>
+    state.game?.players.find((p) => p.id === playerId)
   );
 
   const motionDetection = useCallback((event: DeviceMotionEvent) => {
@@ -20,7 +19,7 @@ export const Game = () => {
   }, []);
 
   useEffect(() => {
-    if (countdownGame > 0 || hasFinished) {
+    if (countdownGame > 0 || player?.time) {
       return;
     }
     const interval = setInterval(() => {
@@ -37,18 +36,36 @@ export const Game = () => {
       clearInterval(interval);
       window.removeEventListener("devicemotion", motionDetection);
     };
-  }, [motionDetection, countdownGame > 0, sessionId, socket, hasFinished]);
+  }, [motionDetection, countdownGame > 0, sessionId, socket, player?.time]);
 
   if (countdownGame > 3) {
     return <h1 className="animate-pulse text-center">Przygotuj się!</h1>;
+  } else if (countdownGame > 0) {
+    return (
+      <span className="countdown">
+        {/* @ts-ignore */}
+        <h1 style={{ "--value": countdownGame }}></h1>
+      </span>
+    );
+  } else if (!player?.time) {
+    return (
+      <div className="flex flex-col w-full items-center animate-shake">
+        <div
+          className={clsx(
+            "box-border inline-block w-2/5 overflow-hidden p-2 comic-box transition-all duration-300 ease-in-out aspect-square",
+            "ring-8 ring-blue-300 ring-offset-8"
+          )}
+        >
+          <img
+            className="m-auto aspect-square cursor-pointer select-none object-contain"
+            src={`/spirits/${player!.spirit}`}
+            alt={player!.spirit}
+          />
+        </div>
+        <h1 className="mt-8">Jazda!</h1>
+      </div>
+    );
+  } else {
+    return <h1 className="animate-pulse text-center">Koniec!</h1>;
   }
-
-  return countdownGame > 0 ? (
-    <span className="countdown">
-      {/* @ts-ignore */}
-      <h1 style={{ "--value": countdownGame }}></h1>
-    </span>
-  ) : (
-    <h1 className="animate-shake">Jazda!</h1>
-  );
 };

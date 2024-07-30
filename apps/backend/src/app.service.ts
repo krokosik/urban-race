@@ -213,10 +213,11 @@ export class AppService {
 
     if (player.score >= this.game.maxScore && !player.time) {
       player.time = Date.now() - this.startTimestamp;
+      this.players$.next(this.game.players);
     }
 
     const playersFinished = this.game.players.reduce(
-      (acc, p) => (acc + p.score >= this.game.maxScore ? 1 : 0),
+      (acc, p) => acc + (p.time ? 1 : 0),
       0,
     );
     if (playersFinished >= Math.min(this.game.players.length, 3)) {
