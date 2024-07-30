@@ -211,7 +211,7 @@ export class AppService {
       this.game.maxScore,
     );
 
-    if (player.score >= this.game.maxScore) {
+    if (player.score >= this.game.maxScore && !player.time) {
       player.time = Date.now() - this.startTimestamp;
     }
 

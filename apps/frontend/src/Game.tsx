@@ -8,6 +8,11 @@ export const Game = () => {
   const sessionId = useStore((state) => state.game?.sessionId);
   const score = useRef<number>(0);
   const playerId = usePlayerId();
+  const hasFinished = useStore(
+    (state) =>
+      (state.game?.players.find((p) => p.id === playerId)?.score ?? -1) >
+      (state.game?.maxScore ?? Number.POSITIVE_INFINITY)
+  );
 
   const motionDetection = useCallback((event: DeviceMotionEvent) => {
     const { x = 0, y = 0, z = 0 } = event.acceleration ?? {};
@@ -15,7 +20,7 @@ export const Game = () => {
   }, []);
 
   useEffect(() => {
-    if (countdownGame > 0) {
+    if (countdownGame > 0 || hasFinished) {
       return;
     }
     const interval = setInterval(() => {
@@ -32,7 +37,7 @@ export const Game = () => {
       clearInterval(interval);
       window.removeEventListener("devicemotion", motionDetection);
     };
-  }, [motionDetection, countdownGame > 0, sessionId, socket]);
+  }, [motionDetection, countdownGame > 0, sessionId, socket, hasFinished]);
 
   if (countdownGame > 3) {
     return <h1 className="animate-pulse text-center">Przygotuj się!</h1>;
