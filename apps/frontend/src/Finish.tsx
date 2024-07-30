@@ -50,7 +50,7 @@ export default function Finish() {
               />
             </div>
             <div>
-              <h3 className="tracking-wider">Time:</h3>
+              <h3 className="tracking-wider">Czas:</h3>
               <h2>
                 {idx === 0 ? "" : "+"}
                 {seconds}.{milliseconds}s
