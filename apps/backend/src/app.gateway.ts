@@ -91,12 +91,21 @@ export class AppGateway {
   }
 
   @SubscribeMessage('join')
-  join(socket: Socket, data: { sessionId: string }): WsResponse<{}> {
+  join(
+    socket: Socket,
+    data: { sessionId: string; playerId: string },
+  ): WsResponse<{}> {
     try {
-      this.LOG.log(`Someone joined session ${data.sessionId}`);
+      this.LOG.log(`Player ${data.playerId} joined session ${data.sessionId}`);
       const game = this.appService.joinSession(data.sessionId);
       if (game.started) {
-        socket.emit('error', { message: 'Game already started.' });
+        if (!game.players.find((player) => player.id === data.playerId)) {
+          socket.emit('error', { message: 'Game already started.' });
+        } else {
+          socket.emit('join', game);
+          socket.emit('start');
+          socket.emit('countdown-game', { countdown: 0 });
+        }
       }
       socket.join(game.sessionId);
 

@@ -1,13 +1,14 @@
 import { useEffect } from "react";
 import { Outlet, useLoaderData, useNavigate } from "react-router";
 import { toast } from "react-toastify";
-import { useProperSocket } from "./hooks";
+import { usePlayerId, useProperSocket } from "./hooks";
 import { Game, useStore } from "./store";
 
 import "react-toastify/dist/ReactToastify.css";
 
 export default function App() {
   const { socket } = useProperSocket();
+  const playerId = usePlayerId();
   const navigate = useNavigate();
 
   const rawGame = useLoaderData() as Game;
@@ -47,7 +48,7 @@ export default function App() {
     );
 
     socket.once("join", (data) => actions.setGame(data));
-    socket.emit("join", { sessionId: sessionId });
+    socket.emit("join", { sessionId, playerId });
 
     return () => {
       socket.off("join");
