@@ -23,11 +23,10 @@ export class AppService {
   public finish$: Subject<void>;
   public countdownLobby$: Subject<number>;
   public countdownGame$: Subject<number>;
+  public countdownFinish$: Subject<number>;
 
   private timerSubscription: Subscription | null = null;
-  private readonly countdownLobby = 30;
-  private readonly countdownGame = 6;
-  private readonly secondRatio = 1500;
+  private startTimestamp: number;
 
   constructor() {
     this.reset$.subscribe(() => {
@@ -49,13 +48,23 @@ export class AppService {
     this.finish$ = new Subject();
     this.countdownLobby$ = new Subject();
     this.countdownGame$ = new Subject();
+    this.countdownFinish$ = new Subject();
     this.countdownLobby$
       .pipe(filter((i) => i === 0))
       .subscribe(() => this.start$.next());
 
+    this.countdownFinish$
+      .pipe(filter((i) => i === 0))
+      .subscribe(() => this.finish$.next());
+
+    this.countdownGame$.pipe(filter((i) => i === 0)).subscribe(() => {
+      this.startTimestamp = Date.now();
+      this.setupTimer(this.countdownFinish$, this.game.raceTime, true);
+    });
+
     this.start$.subscribe(() => {
       this.game.started = true;
-      this.setupTimer(this.countdownGame$, this.countdownGame);
+      this.setupTimer(this.countdownGame$, this.game.countdownGame);
     });
 
     this.finish$.subscribe(() => {
@@ -69,10 +78,14 @@ export class AppService {
     return {
       sessionId: '',
       players: [],
-      slots: 0,
+      slots: this.spirits.length,
       started: false,
       finished: false,
-      maxScore: 0,
+      maxScore: 100,
+      countdownGame: 9,
+      countdownLobby: 30,
+      secondDurationMs: 1500,
+      raceTime: 60,
     };
   }
 
@@ -80,17 +93,26 @@ export class AppService {
     return readdirSync(join(__dirname, '../..', 'frontend', 'dist', 'spirits'));
   }
 
-  public init(slots: number, maxScore: number): string {
+  public init(
+    data: Partial<{
+      slots: number;
+      maxScore: number;
+      raceTime: number;
+      countdownLobby: number;
+      countdownGame: number;
+      secondDurationMs: number;
+    }>,
+  ): string {
     if (this.game.sessionId) {
       throw new GameError(GameErrorType.GameStarted);
     }
 
     this.game = {
       ...this.baseGame,
+      ...data,
       sessionId: nanoid(),
-      slots,
-      maxScore,
     };
+    this.initObservables();
 
     this.players$.next(this.game.players);
 
@@ -138,17 +160,24 @@ export class AppService {
       });
       this.setupTimer(
         this.countdownLobby$,
-        this.game.players.length < this.game.slots ? this.countdownLobby : 0,
+        this.game.players.length < this.game.slots
+          ? this.game.countdownLobby
+          : 0,
       );
     }
 
     this.players$.next(this.game.players);
   }
 
-  private setupTimer(countdown$: Subject<number>, countdown: number) {
+  private setupTimer(
+    countdown$: Subject<number>,
+    countdown: number,
+    ignoreRatio = false,
+  ) {
     this.timerSubscription?.unsubscribe();
-    const rescaledCountdown = Math.round((countdown * 1000) / this.secondRatio);
-    this.timerSubscription = timer(0, this.secondRatio)
+    const secondDurationMs = ignoreRatio ? 1000 : this.game.secondDurationMs;
+    const rescaledCountdown = Math.round((countdown * 1000) / secondDurationMs);
+    this.timerSubscription = timer(0, secondDurationMs)
       .pipe(
         take(rescaledCountdown + 1),
         map((i) => rescaledCountdown - i),
@@ -183,6 +212,14 @@ export class AppService {
     );
 
     if (player.score >= this.game.maxScore) {
+      player.time = Date.now() - this.startTimestamp;
+    }
+
+    const playersFinished = this.game.players.reduce(
+      (acc, p) => (acc + p.score >= this.game.maxScore ? 1 : 0),
+      0,
+    );
+    if (playersFinished >= Math.min(this.game.players.length, 3)) {
       this.finish$.next();
       this.players$.next(this.game.players);
     }

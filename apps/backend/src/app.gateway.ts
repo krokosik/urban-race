@@ -30,13 +30,18 @@ export class AppGateway {
   @SubscribeMessage('init')
   async init(
     socket: Socket,
-    data: { slots: number; maxScore: number },
+    data: Partial<{
+      slots: number;
+      maxScore: number;
+      raceTime: number;
+      countdownLobby: number;
+      countdownGame: number;
+      secondDurationMs: number;
+    }>,
   ): Promise<WsResponse<{ sessionId: string; qrCodeBase64: string }>> {
     try {
-      this.LOG.log(
-        `Init game with ${data.slots} slots and max score ${data.maxScore}`,
-      );
-      const sessionId = this.appService.init(data?.slots, data?.maxScore);
+      this.LOG.log(`Init game with ${JSON.stringify(data, null, 2)}`);
+      const sessionId = this.appService.init(data);
       this.setupSubscriptions(sessionId);
 
       socket.join(this.gameRoom);
@@ -69,13 +74,19 @@ export class AppGateway {
       this.server
         .to(sessionId)
         .to(this.gameRoom)
-        .emit('countdown-lobby', { countdown });
+        .emit('countdownLobby', { countdown });
     });
     this.appService.countdownGame$.subscribe((countdown) => {
       this.server
         .to(sessionId)
         .to(this.gameRoom)
-        .emit('countdown-game', { countdown });
+        .emit('countdownGame', { countdown });
+    });
+    this.appService.countdownFinish$.subscribe((countdown) => {
+      this.server
+        .to(sessionId)
+        .to(this.gameRoom)
+        .emit('countdownFinish', { countdown });
     });
     this.appService.countdownGame$
       .pipe(
@@ -105,7 +116,7 @@ export class AppGateway {
         } else {
           socket.emit('join', game);
           socket.emit('start');
-          socket.emit('countdown-game', { countdown: 0 });
+          socket.emit('countdownGame', { countdown: 0 });
         }
       }
       socket.join(game.sessionId);

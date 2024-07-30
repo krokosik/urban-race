@@ -92,10 +92,10 @@ export default function App() {
     });
     socket.on("finish", () => navigate(`/finish?sessionId=${sessionId}`));
     socket.on("players", (players) => actions.setPlayers(players));
-    socket.on("countdown-lobby", ({ countdown }) =>
+    socket.on("countdownLobby", ({ countdown }) =>
       actions.setCountdownLobby(countdown)
     );
-    socket.on("countdown-game", ({ countdown }) =>
+    socket.on("countdownGame", ({ countdown }) =>
       actions.setCountdownGame(countdown)
     );
 

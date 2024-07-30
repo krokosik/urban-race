@@ -74,6 +74,11 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <IoProvider>
       <RouterProvider router={router} />
+      {/* <div className="max-w-3xl mx-auto h-dvh">
+        <main className="flex flex-col gap-4 items-center justify-center size-full px-4">
+          <Finish />
+        </main>
+      </div> */}
     </IoProvider>
     <ToastContainer position="bottom-center" theme="dark" />
   </React.StrictMode>

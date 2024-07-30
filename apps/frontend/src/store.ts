@@ -18,6 +18,7 @@ export interface Player {
   id: string;
   score: number;
   spirit: string;
+  time?: number;
 }
 
 export interface Game {

@@ -2,6 +2,7 @@ export interface Player {
   id: string;
   score: number;
   spirit: string;
+  time?: number;
 }
 
 export interface Game {
@@ -11,6 +12,10 @@ export interface Game {
   started: boolean;
   finished: boolean;
   maxScore: number;
+  raceTime: number;
+  countdownLobby: number;
+  countdownGame: number;
+  secondDurationMs: number;
 }
 
 export enum GameErrorType {
