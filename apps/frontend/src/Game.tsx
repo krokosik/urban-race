@@ -35,7 +35,7 @@ export const Game = () => {
   }, [motionDetection, countdownGame > 0, sessionId, socket]);
 
   if (countdownGame > 3) {
-    return <h1 className="animate-pulse">Przygotuj się!</h1>;
+    return <h1 className="animate-pulse text-center">Przygotuj się!</h1>;
   }
 
   return countdownGame > 0 ? (

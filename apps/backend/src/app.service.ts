@@ -11,7 +11,7 @@ import {
   take,
   timer,
 } from 'rxjs';
-import { Game, Player } from './interfaces';
+import { Game, GameError, GameErrorType, Player } from './interfaces';
 
 @Injectable()
 export class AppService {
@@ -82,9 +82,7 @@ export class AppService {
 
   public init(slots: number, maxScore: number): string {
     if (this.game.sessionId) {
-      throw new Error(
-        'Game session already started, let it finish or reset it.',
-      );
+      throw new GameError(GameErrorType.GameStarted);
     }
 
     this.game = {
@@ -101,7 +99,7 @@ export class AppService {
 
   private checkSession(sessionId: string): void {
     if (this.game.sessionId !== sessionId) {
-      throw new Error('Session not found.');
+      throw new GameError(GameErrorType.NoSession);
     }
   }
   public joinSession(sessionId: string): Game {
@@ -117,15 +115,15 @@ export class AppService {
     this.checkSession(sessionId);
 
     if (this.game.started) {
-      throw new Error('Game session already started.');
+      throw new GameError(GameErrorType.GameStarted);
     }
 
     if (this.game.players.length >= this.game.slots) {
-      throw new Error('Game session is full.');
+      throw new GameError(GameErrorType.GameFull);
     }
 
     if (!this.spirits.includes(spirit)) {
-      throw new Error('Spirit not available.');
+      throw new GameError(GameErrorType.SpiritNotAvailable);
     }
 
     const player = this.findPlayer(playerId);
@@ -171,12 +169,12 @@ export class AppService {
     this.checkSession(sessionId);
 
     if (!this.game.started || this.game.finished) {
-      throw new Error('Game is not running.');
+      throw new GameError(GameErrorType.GameNotRunning);
     }
 
     const player = this.findPlayer(playerId);
     if (!player) {
-      throw new Error('Player not found.');
+      throw new GameError(GameErrorType.PlayerNotFound);
     }
 
     player.score = Math.min(

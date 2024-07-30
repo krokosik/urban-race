@@ -12,3 +12,18 @@ export interface Game {
   finished: boolean;
   maxScore: number;
 }
+
+export enum GameErrorType {
+  NoSession = 'NoSession',
+  GameFull = 'GameFull',
+  GameStarted = 'GameStarted',
+  SpiritNotAvailable = 'SpiritNotAvailable',
+  GameNotRunning = 'GameNotRunning',
+  PlayerNotFound = 'PlayerNotFound',
+}
+
+export class GameError extends Error {
+  constructor(public type: GameErrorType) {
+    super(type);
+  }
+}
