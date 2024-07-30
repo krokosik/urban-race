@@ -82,6 +82,7 @@ export class AppGateway {
         filter((countdown) => countdown === 0),
         mergeMap(() => interval(300)),
         takeUntil(this.appService.finish$),
+        takeUntil(this.appService.reset$),
       )
       .subscribe(() => {
         this.server

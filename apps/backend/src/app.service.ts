@@ -16,6 +16,8 @@ import { Game, Player } from './interfaces';
 @Injectable()
 export class AppService {
   public game: Game = this.baseGame;
+  public reset$: Subject<void> = new Subject();
+
   public players$: BehaviorSubject<Player[]>;
   public start$: Subject<void>;
   public finish$: Subject<void>;
@@ -28,7 +30,11 @@ export class AppService {
   private readonly secondRatio = 1500;
 
   constructor() {
-    this.initObservables();
+    this.reset$.subscribe(() => {
+      this.game = this.baseGame;
+      this.initObservables();
+    });
+    this.reset();
   }
 
   private initObservables() {
@@ -185,9 +191,6 @@ export class AppService {
   }
 
   public reset(): void {
-    this.game = {
-      ...this.baseGame,
-    };
-    this.initObservables();
+    this.reset$.next();
   }
 }
