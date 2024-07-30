@@ -25,6 +25,7 @@ export class AppService {
   private timerSubscription: Subscription | null = null;
   private readonly countdownLobby = 30;
   private readonly countdownGame = 6;
+  private readonly secondRatio = 1500;
 
   constructor() {
     this.initObservables();
@@ -142,10 +143,11 @@ export class AppService {
 
   private setupTimer(countdown$: Subject<number>, countdown: number) {
     this.timerSubscription?.unsubscribe();
-    this.timerSubscription = timer(0, 1000)
+    const rescaledCountdown = Math.round((countdown * 1000) / this.secondRatio);
+    this.timerSubscription = timer(0, this.secondRatio)
       .pipe(
-        take(countdown + 1),
-        map((i) => countdown - i),
+        take(rescaledCountdown + 1),
+        map((i) => rescaledCountdown - i),
       )
       .subscribe((i) => countdown$.next(i));
   }
